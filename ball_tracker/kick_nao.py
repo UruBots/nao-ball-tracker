@@ -37,14 +37,16 @@ class KickNAO(Node):
         # Head default position
         self.default_head_pitch = 0.0  
         self.tracking_head_pitch = 0.3  
-        
         self.get_logger().info(f'Tracking {self.ball_color} ball on topic {self.image_topic}')
+        self.get_logger().info(f'Head pitch angles: default={self.default_head_pitch}, tracking={self.tracking_head_pitch}')
+        self.move_head(self.default_head_pitch)  # Set initial head position
+        self.get_logger().info('Kicking NAO initialized.')
 
     def move_head(self, pitch_angle):
         """Moves NAO's head to track the ball."""
         head_cmd = JointAnglesWithSpeed()
-        head_cmd.joint_names = ['HeadPitch']
-        head_cmd.joint_angles = [pitch_angle]  
+        head_cmd.joint_names = ['HeadYaw, HeadPitch']
+        head_cmd.joint_angles = [0.0, pitch_angle]  
         head_cmd.speed = 0.1
         head_cmd.relative = False
         self.joint_pub.publish(head_cmd)
@@ -155,10 +157,12 @@ class KickNAO(Node):
                     self.kick()
                     #rclpy.shutdown()
 
-                        # Adjust head tracking based on ball position
+                # Adjust head tracking based on ball position
                 if y < center_y * 0.7:  # Ball is above the middle (look down)
+                    self.get_logger().info('Ball is above the middle (look down)')
                     self.move_head(self.tracking_head_pitch)
                 else:  # Ball is at or below center (reset head)
+                    self.get_logger().info('Ball is above the middle (reset head)')
                     self.move_head(self.default_head_pitch)
 
         else:
